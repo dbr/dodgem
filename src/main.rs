@@ -60,7 +60,17 @@ fn bumper(path: &str, bump_type: BumpType) -> anyhow::Result<()> {
     let repo = Repository::discover(path)?;
     let head = repo.head()?.resolve()?;
     if head.shorthand() != Some("master") {
-        panic!("not on master branch");
+        return Err(anyhow::anyhow!("must be on master branch"));
+    }
+    let diff = repo.diff_index_to_workdir(None, None)?;
+    let changes = diff.stats()?.files_changed();
+    if changes > 0 {
+        let diff_buf = diff.stats()?.to_buf(git2::DiffStatsFormat::SHORT, 80)?;
+        let stats = diff_buf.as_str().unwrap_or("(no diff available)");
+        return Err(anyhow::anyhow!(
+            "Repo contains uncommited changes: {}",
+            stats
+        ));
     }
 
     // Get map of commit ID to tag-name
