@@ -93,18 +93,19 @@ fn bumper(path: &str, bump_type: BumpType) -> anyhow::Result<()> {
 
     dbg!(&tagmap);
 
-    // Walk commits
+    // Walk commits, newest to oldest
     let mut walker = repo.revwalk()?;
     walker.push_head()?;
     walker.set_sorting(git2::Sort::TOPOLOGICAL | git2::Sort::TIME)?;
 
-    // To find last tagged commit from current branch
+    // Find last tagged commit from current branch
     let prev_tag = walker
         .filter_map(Result::ok)
         .filter(|o| tagmap.contains_key(&o))
         .next();
     dbg!(prev_tag);
 
+    // Generate new version string
     let (old_version, next_version) = match prev_tag {
         Some(t) => {
             let version = Version::parse_tag(&tagmap[&t]).unwrap();
@@ -120,12 +121,17 @@ fn bumper(path: &str, bump_type: BumpType) -> anyhow::Result<()> {
 
     dbg!(&next_version);
 
+    // Update files in repo
     let repo_path = repo.workdir().expect("Repo has no working directory");
     let f = repo_path.join("package.py");
-    dbg!(&f);
+    eprintln!(
+        "Updating {} from {} to {}",
+        &f.to_str().unwrap_or("???"),
+        &old_version,
+        &next_version
+    );
     let contents = std::fs::read_to_string(&f)?;
     let updated = contents.replace(&old_version, &next_version);
-    println!("{}", updated);
     std::fs::write(&f, &updated)?;
 
     Ok(())
