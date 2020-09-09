@@ -58,10 +58,12 @@ impl Version {
 
 fn bumper(path: &str, bump_type: BumpType) -> anyhow::Result<()> {
     let repo = Repository::discover(path)?;
-    let head = repo.head()?.resolve()?;
-    if head.shorthand() != Some("master") {
+
+    // Check HEAD points to branch `master`
+    if repo.head()?.resolve()?.shorthand() != Some("master") {
         return Err(anyhow::anyhow!("must be on master branch"));
     }
+
     let diff = repo.diff_index_to_workdir(None, None)?;
     let changes = diff.stats()?.files_changed();
     if changes > 0 {
@@ -116,7 +118,7 @@ fn bumper(path: &str, bump_type: BumpType) -> anyhow::Result<()> {
             };
             (version.version_str(), next.version_str())
         }
-        None => Err(anyhow::anyhow!("No previous tag found"))?,
+        None => return Err(anyhow::anyhow!("No previous tag found")),
     };
 
     dbg!(&next_version);
