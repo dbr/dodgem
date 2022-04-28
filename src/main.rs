@@ -59,9 +59,9 @@ impl Version {
 fn bumper(path: &str, bump_type: BumpType) -> anyhow::Result<()> {
     let repo = Repository::discover(path)?;
 
-    // Check HEAD points to branch `master`
-    if repo.head()?.resolve()?.shorthand() != Some("master") {
-        return Err(anyhow::anyhow!("must be on master branch"));
+    // Check HEAD points to branch `main`
+    if repo.head()?.resolve()?.shorthand() != Some("main") {
+        return Err(anyhow::anyhow!("must be on main branch"));
     }
 
     let diff = repo.diff_index_to_workdir(None, None)?;
