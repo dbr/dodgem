@@ -93,8 +93,6 @@ fn bumper(path: &str, bump_type: BumpType) -> anyhow::Result<()> {
         map
     };
 
-    dbg!(&tagmap);
-
     // Walk commits, newest to oldest
     let mut walker = repo.revwalk()?;
     walker.push_head()?;
@@ -105,7 +103,6 @@ fn bumper(path: &str, bump_type: BumpType) -> anyhow::Result<()> {
         .filter_map(Result::ok)
         .filter(|o| tagmap.contains_key(&o))
         .next();
-    dbg!(prev_tag);
 
     // Generate new version string
     let (old_version, next_version) = match prev_tag {
@@ -120,8 +117,6 @@ fn bumper(path: &str, bump_type: BumpType) -> anyhow::Result<()> {
         }
         None => return Err(anyhow::anyhow!("No previous tag found")),
     };
-
-    dbg!(&next_version);
 
     // Update files in repo
     let repo_path = repo.workdir().expect("Repo has no working directory");
